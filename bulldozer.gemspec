@@ -8,8 +8,8 @@ Gem::Specification.new do |gem|
   gem.version       = Bulldozer::VERSION
   gem.authors       = ["Greg Brockman"]
   gem.email         = ["gdb@gregbrockman.com"]
-  gem.description   = %q{TODO: Write a gem description}
-  gem.summary       = %q{TODO: Write a gem summary}
+  gem.description   = %q{A distributed, version-aware job running framework}
+  gem.summary       = %q{Bulldozer makes it easy to run jobs across pools of workers.}
   gem.homepage      = ""
 
   gem.files         = `git ls-files`.split($/)

@@ -1,6 +1,5 @@
 source 'https://rubygems.org'
 
-# Specify your gem's dependencies in bulldozer.gemspec
 gemspec
 gem 'rubysh', :git => 'git@github.com:gdb/rubysh', :ref => '5ff9fec2812d8845f89b68b96567a5b9e21df869'
 gem 'amqp'
