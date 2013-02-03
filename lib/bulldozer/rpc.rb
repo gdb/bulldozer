@@ -52,6 +52,7 @@ module Bulldozer
 
         Bulldozer::RabbitMQ.publish_job(
           'repo' => repo,
+          'entry_point' => 'example/printer.rb',
           'class' => self.name,
           'method' => name,
           'arguments' => arguments

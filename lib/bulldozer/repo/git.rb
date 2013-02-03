@@ -1,7 +1,6 @@
 require 'fileutils'
 
 module Bulldozer::Repo
-  # TODO: better cleanup on failures
   class Git
     attr_reader :basedir, :remote, :commit
 
@@ -12,15 +11,26 @@ module Bulldozer::Repo
     end
 
     def ensure_checkout
+      # TODO: better cleanup on failures (maybe touch a file on success?)
       if File.exists?(commit_path)
         Bulldozer.log.debug("Skipping checkout of #{commit} in #{remote} since #{commit_path} exists")
         return false
       end
 
-      ensure_commit
-      checkout
+      begin
+        ensure_commit
+        checkout
+        bundle
+      rescue Exception => e
+        FileUtils.rm_rf(commit_path)
+        raise
+      end
 
       true
+    end
+
+    def checkout_path
+      commit_path
     end
 
     private
@@ -42,6 +52,10 @@ module Bulldozer::Repo
       true
     end
 
+    def bundle
+      Rubysh('bundle', 'install', :cwd => commit_path).check_call
+    end
+
     def clone
       cmd = Rubysh('git', 'clone', '--bare', remote, clone_path)
       Bulldozer.log.info("Running #{cmd}")
@@ -50,15 +64,10 @@ module Bulldozer::Repo
 
     def checkout
       FileUtils.mkdir(commit_path)
-      begin
-        # TODO: implement pipestatus in Rubysh
-        cmd = Rubysh('git', 'archive', commit, :cwd => clone_path) | Rubysh('tar', 'x', '-C', commit_path)
-        Bulldozer.log.info("Running #{cmd}")
-        cmd.check_call
-      rescue Exception => e
-        FileUtils.rm_rf(commit_path)
-        raise
-      end
+      # TODO: implement pipestatus in Rubysh
+      cmd = Rubysh('git', 'archive', commit, :cwd => clone_path) | Rubysh('tar', 'x', '-C', commit_path)
+      Bulldozer.log.info("Running #{cmd}")
+      cmd.check_call
     end
 
     def fetch

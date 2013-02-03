@@ -3,10 +3,13 @@ require 'bunny'
 require 'json'
 
 module Bulldozer
+  # TODO: it's a biiit weird to have this combined
+  # blocking/nonblocking setup, since the APIs are slightly different
+  # in both cases.
   module RabbitMQ
     def self.job_queue
       @job_queue
-      end
+    end
 
     def self.result_queue
       @result_queue

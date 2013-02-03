@@ -1,0 +1,52 @@
+#!/usr/bin/env ruby
+require 'optparse'
+
+require 'bulldozer'
+
+module Bulldozer
+  class Dozer
+    def initialize(require)
+      @require = require
+    end
+
+    def run
+      # TODO: fall back to load?
+      require(@require)
+
+      Bulldozer::RabbitMQ.job_queue.subscribe(:ack => true) do |args|
+        require'pry';binding.pry
+      end
+    end
+  end
+end
+
+def main
+  options = {}
+  optparse = OptionParser.new do |opts|
+    opts.banner = "Usage: #{$0} [options] REQUIRE"
+
+    opts.on('-h', '--help', 'Display this message') do
+      puts opts
+      exit(1)
+    end
+  end
+  optparse.parse!
+
+  if ARGV.length != 1
+    puts optparse
+    return 1
+  end
+
+  Bulldozer::RabbitMQ.connect_sync
+
+  runner = Bulldozer::Dozer.new(ARGV[0])
+  runner.run
+  return 0
+end
+
+ret = main
+begin
+  exit(ret)
+rescue TypeError
+  exit(0)
+end
