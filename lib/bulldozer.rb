@@ -1,5 +1,6 @@
-require "bulldozer/version"
+require 'bulldozer/rabbitmq'
+require 'bulldozer/rpc'
+require 'bulldozer/version'
 
 module Bulldozer
-  # Your code goes here...
 end

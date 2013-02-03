@@ -1,0 +1,73 @@
+#!/usr/bin/env ruby
+require 'logger'
+require 'optparse'
+
+require 'eventmachine'
+
+module Bulldozer
+  class Bulldozerd
+    include StripeContext::Log::Loggable
+
+    def run
+      # Job format:
+      #
+      # code:
+      #   type: git
+      #   fetch_url: <fetch url>
+      #   sha1: <sha1>
+      # daemon: <path to daemon> (should use the bulldozer client)
+      # job:
+      #   class: <rpc class>
+      #   method: <rpc method>
+      #   args: args
+      Bulldozer::RabbitMQ.job_queue.subscribe do |headers, payload|
+        job = JSON.parse(payload)
+        p job
+
+        Bulldozer::RabbitMQ.ack(headers.delivery_tag)
+      end
+    end
+  end
+end
+
+def main
+  options = {}
+  optparse = OptionParser.new do |opts|
+    opts.banner = "Usage: #{$0} [options]"
+
+    opts.on('-v', '--verbosity', 'Verbosity of debugging output') do
+      $log.level -= 1
+    end
+
+    opts.on('-h', '--help', 'Display this message') do
+      puts opts
+      exit(1)
+    end
+  end
+  optparse.parse!
+
+  if ARGV.length != 0
+    puts optparse
+    return 1
+  end
+
+  StripeContext::Log::Loggable.init
+  StripeContext::Config.init
+
+  EM.run do
+    Bulldozer::RabbitMQ.connect
+
+    runner = Bulldozer::Bulldozerd.new
+    runner.run
+  end
+  return 0
+end
+
+if $0 == __FILE__
+  ret = main
+  begin
+    exit(ret)
+  rescue TypeError
+    exit(0)
+  end
+end
