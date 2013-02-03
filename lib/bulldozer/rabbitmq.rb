@@ -4,7 +4,13 @@ require 'json'
 
 module Bulldozer
   module RabbitMQ
-    attr_reader :job_queue, :result_queue
+    def self.job_queue
+      @job_queue
+      end
+
+    def self.result_queue
+      @result_queue
+    end
 
     JOB_QUEUE_NAME = 'bulldozer-job'
     RESULT_QUEUE_NAME = 'bulldozer-result'
@@ -28,12 +34,12 @@ module Bulldozer
     end
 
     def self.publish_job(job)
-      generated = JSON.pretty_generate(job)
+      generated = JSON.generate(job)
       @exchange.publish(generated, :routing_key => JOB_QUEUE_NAME)
     end
 
     def self.publish_result(result)
-      generated = JSON.pretty_generate(result)
+      generated = JSON.generate(result)
       @exchange.publish(generated, :routing_key => RESULT_QUEUE_NAME)
     end
 

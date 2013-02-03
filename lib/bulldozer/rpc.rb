@@ -48,9 +48,10 @@ module Bulldozer
       def defer(name, *arguments)
         # TODO: cache? make sure it matches the running version? have
         # a DSL for specifying?
-        code = Bulldozer::RPC.discover_repo(@bulldozer_repo)
+        repo = Bulldozer::RPC.discover_repo(@bulldozer_repo)
+
         Bulldozer::RabbitMQ.publish_job(
-          'code' => code,
+          'repo' => repo,
           'class' => self.name,
           'method' => name,
           'arguments' => arguments
