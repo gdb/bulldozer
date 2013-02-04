@@ -12,7 +12,8 @@ module Bulldozer
 
       # Why do this as an option at all if it's required?
       @queue_name = @options.fetch(:queue)
-      @queue = Bulldozer::RabbitMQ.channel.queue(@queue_name, :passive => true)
+      @queue = Bulldozer::RabbitMQ.channel.queue(@queue_name,
+        :auto_delete => true)
     end
 
     def run
