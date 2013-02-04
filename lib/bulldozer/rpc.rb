@@ -1,18 +1,44 @@
+require 'set'
+
 require 'rubysh'
+require 'bulldozer/third/class_utils'
 
 module Bulldozer
   module RPC
+    @repo_spec = nil
+
     def self.included(other)
       other.extend(ClassMethods)
     end
 
-    def self.discover_repo(file)
+    def self.use_filesystem_repo(path)
+      @repo_spec = repo_spec_filesystem(path)
+    end
+
+    def self.use_git_repo(path)
+      @repo_spec = repo_spec_git(path)
+    end
+
+    def self.repo_spec
+      @repo_spec
+    end
+
+    private
+
+    def self.repo_spec_git(file)
       remote = git_remote(file)
       commit = git_commit(file)
       {
         'type' => 'git',
         'remote' => remote,
         'commit' => commit
+      }
+    end
+
+    def self.repo_spec_filesystem(file)
+      {
+        'type' => 'filesystem',
+        'path' => file
       }
     end
 
@@ -41,20 +67,9 @@ module Bulldozer
     end
 
     module ClassMethods
-      def repo(location)
-        @bulldozer_repo = location
-      end
-
       def defer(name, *arguments)
-        # TODO: cache? make sure it matches the running version? have
-        # a DSL for specifying?
-        # repo = Bulldozer::RPC.discover_repo(@bulldozer_repo)
-
-        # Make this configurable
-        repo = {
-          'type' => 'filesystem',
-          'path' => File.expand_path('../..', File.dirname(__FILE__))
-        }
+        repo = Bulldozer::RPC.repo_spec
+        raise "Must set the repo spec to define where workers get their code from. If you're just playing around, try something like: Bulldozer::RPC.use_filesystem_repo(File.join(__FILE__, '../..'))" unless repo
 
         job = {
             'class' => self.name,
@@ -71,17 +86,17 @@ module Bulldozer
       end
 
       def rpc(name, &blk)
-        rpcs[name.to_s] = blk
+        Bulldozer::Third::ClassUtils.define_object_method(self, name, blk)
+        bulldozer_rpcs << name.to_s
       end
 
       def invoke_rpc(name, *arguments)
-        raise "No such RPC on #{self}: #{name}" unless rpc = rpcs[name]
-        # TODO: maybe run as a bound method?
-        rpc.call(*arguments)
+        raise "No such RPC on #{self}: #{name}" unless bulldozer_rpcs.include?(name)
+        send(name, *arguments)
       end
 
-      def rpcs
-        @bulldozer_rpcs ||= {}
+      def bulldozer_rpcs
+        @bulldozer_rpcs ||= Set.new
       end
     end
   end

@@ -8,9 +8,10 @@ $log = Logger.new(STDOUT)
 $log.level = Logger::WARN
 
 module Bulldozer
+  Bulldozer::RPC.use_filesystem_repo(File.join(__FILE__, '../..'))
+
   class Printer
     include Bulldozer::RPC
-    repo __FILE__
 
     rpc(:print) do |argument|
       p argument
