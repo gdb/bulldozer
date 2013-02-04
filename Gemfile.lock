@@ -1,0 +1,56 @@
+GIT
+  remote: git@github.com:gdb/rubysh
+  revision: 5ff9fec2812d8845f89b68b96567a5b9e21df869
+  ref: 5ff9fec2812d8845f89b68b96567a5b9e21df869
+  specs:
+    rubysh (0.0.3)
+
+GIT
+  remote: git@github.com:ruby-amqp/bunny
+  revision: c1b29569ede6ee92768da07edebec4dc2938befe
+  ref: c1b29569ede6ee92768da07edebec4dc2938befe
+  specs:
+    bunny (0.9.0.pre7)
+      amq-protocol (>= 1.1.0)
+
+PATH
+  remote: .
+  specs:
+    bulldozer (0.0.1)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    amq-client (0.9.11)
+      amq-protocol (>= 1.0.1)
+      eventmachine
+    amq-protocol (1.1.0)
+    amqp (0.9.8)
+      amq-client (~> 0.9.5)
+      amq-protocol (>= 0.9.4)
+      eventmachine
+    coderay (0.9.7)
+    eventmachine (1.0.0)
+    method_source (0.4.1)
+      ruby_parser (>= 2.0.5)
+    msgpack (0.5.1)
+    pry (0.8.2)
+      coderay (>= 0.9.7)
+      method_source (>= 0.4.0)
+      ruby_parser (>= 2.0.5)
+      slop (>= 1.5.2)
+    ruby_parser (2.0.6)
+      sexp_processor (~> 3.0)
+    sexp_processor (3.0.5)
+    slop (3.4.3)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  amqp
+  bulldozer!
+  bunny!
+  msgpack
+  pry
+  rubysh!
