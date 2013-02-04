@@ -1,4 +1,5 @@
-source 'https://rubygems.org'
+gem_source = ENV['BULLDOZER_SOURCE'] || 'https://rubygems.org'
+source gem_source
 
 gem 'pry'
 gemspec
