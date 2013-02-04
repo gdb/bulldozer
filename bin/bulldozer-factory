@@ -30,7 +30,7 @@ cd #{@tmpdir}/bulldozer || :
 git clone git@github.com:gdb/bulldozer #{@tmpdir}/bulldozer || git fetch
 cd #{@tmpdir}/bulldozer
 /usr/lib/rbenv/shims/bundle install
-start-stop-daemon -bm -d . >>#{@logfile} 2>&1 --pidfile #{@pidfile} -S --exec /usr/bin/nohup -- /usr/lib/rbenv/shims/bundle exec bulldozerd -s qa-dev1 -p #{@tmpdir}/bulldozer-data
+start-stop-daemon -m -d . >>#{@logfile} 2>&1 --pidfile #{@pidfile} -S --exec /usr/bin/nohup -- /usr/lib/rbenv/shims/bundle exec bulldozerd -s qa-dev1 -p #{@tmpdir}/bulldozer-data &
 EOF
         runner.run_async
       end
