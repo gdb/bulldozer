@@ -19,6 +19,11 @@ module Bulldozer
       require_path = File.expand_path('.', @require)
       load(require_path)
 
+      if defined?(:bulldozer_init)
+        Bulldozer.log.info('Calling top-level bulldozer_init method')
+        bulldozer_init
+      end
+
       @queue.subscribe(:ack => true) do |delivery_info, properties, content|
         begin
           process(delivery_info, properties, content)
@@ -39,17 +44,17 @@ module Bulldozer
     end
 
     def process(delivery_info, properties, content)
-      data = MessagePack.unpack(content)
-      Bulldozer.log.debug("Dozer received a new job: #{data.inspect}")
+      data = Bulldozer::SERIALIZER.load(content)
+      Bulldozer.log.debug("Dozer received a new job: #{data.inspect[0...1000]}")
       job = data.fetch('job')
 
       klass_name = job.fetch('class')
       method = job.fetch('method')
       arguments = job.fetch('arguments')
 
-      # Note: this sanity checking prevents bugs, but should *not*
-      # be considered protection against arbitrary code
-      # execution. Only run Bulldozer with trusted clients.
+      # Note: this sanity checking prevents bugs, but should *not* be
+      # considered protection against arbitrary code execution. Only
+      # run Bulldozer with trusted clients.
       klass = Bulldozer::Third::KernelUtils.fetch_class(klass_name)
       unless klass < Bulldozer::RPC
         raise "Invalid RPC: #{klass} does not mixin Bulldozer::RPC"

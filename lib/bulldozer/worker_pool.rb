@@ -47,8 +47,7 @@ module Bulldozer
       pool_size.times {spawn_worker}
 
       at_exit do
-        @workers.each do |worker|
-          pid = worker.pid
+        @workers.each do |pid, _|
           begin
             Process.kill('TERM', pid)
           rescue Errno::ESRCH

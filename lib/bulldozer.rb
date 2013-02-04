@@ -1,4 +1,5 @@
 require 'logger'
+require 'msgpack'
 
 require 'bulldozer/rabbitmq'
 require 'bulldozer/repo'
@@ -14,5 +15,15 @@ module Bulldozer
     end
 
     @log
+  end
+
+  class SERIALIZER
+    def self.load(data)
+      MessagePack.unpack(data)
+    end
+
+    def self.dump(data)
+      MessagePack.pack(data)
+    end
   end
 end
