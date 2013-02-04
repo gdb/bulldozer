@@ -25,16 +25,16 @@ module Bulldozer
     JOB_QUEUE_NAME = 'bulldozer-job'
     RESULT_QUEUE_NAME = 'bulldozer-result'
 
-    def self.connect_async
-      @connection = AMQP.connect(:host => 'localhost')
+    def self.connect_async(host='localhost')
+      @connection = AMQP.connect(:host => host)
       @channel = AMQP::Channel.new(@connection)
       @exchange = @channel.default_exchange
       @job_queue = @channel.queue(JOB_QUEUE_NAME)
       @result_queue = @channel.queue(RESULT_QUEUE_NAME)
     end
 
-    def self.connect_sync
-      @bunny = Bunny.new(:host => 'localhost', :threaded => false)
+    def self.connect_sync(host='localhost')
+      @bunny = Bunny.new(:host => host, :threaded => false)
       @bunny.start
 
       @channel = @bunny.create_channel

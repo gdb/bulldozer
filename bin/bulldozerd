@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 require 'optparse'
+require 'fileutils'
 
 require 'eventmachine'
 require 'bulldozer'
@@ -44,7 +45,7 @@ module Bulldozer
 end
 
 def main
-  options = {}
+  options = {:server => 'localhost', :path => '/tmp/bulldozer'}
   optparse = OptionParser.new do |opts|
     opts.banner = "Usage: #{$0} [options]"
 
@@ -56,6 +57,15 @@ def main
       puts opts
       exit(1)
     end
+
+    opts.on('-s RABBITMQSERVER', '--server', 'Which RabbitMQ to connect to') do |server|
+      options[:server] = server
+    end
+
+    opts.on('-p CODEPATH', '--path', 'Where to store checkouts') do |path|
+      FileUtils.mkdir_p(path)
+      options[:path] = path
+    end
   end
   optparse.parse!
 
@@ -65,9 +75,9 @@ def main
   end
 
   EM.run do
-    Bulldozer::RabbitMQ.connect_async
+    Bulldozer::RabbitMQ.connect_async(options[:server])
 
-    runner = Bulldozer::Bulldozerd.new('/tmp/bulldozer')
+    runner = Bulldozer::Bulldozerd.new(options[:path])
     runner.run
   end
   return 0
