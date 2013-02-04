@@ -10,7 +10,7 @@ module Bulldozer
       @scrub_env = true
 
       # TODO: implement env scrubbing in Rubysh
-      ENV.keys.select {|key| key =~ /\ABUNDLE/}.each {|key| ENV.delete(key)}
+      ENV.keys.select {|key| key =~ /\ABUNDLE/ || key =~ /\ARUBY/}.each {|key| ENV.delete(key)}
     end
 
     def initialize(repo)
