@@ -1,0 +1,111 @@
+#!/usr/bin/env ruby
+require 'logger'
+require 'optparse'
+
+require 'bulldozer'
+
+module Bulldozer
+  class BulldozerFactory
+    def initialize(options)
+      @servers = (options[:min]..options[:max]).map do |i|
+        "#{options[:server]}#{i}"
+      end
+      @logfile = options[:logfile]
+      @pidfile = options[:pidfile]
+      @tmpdir = options[:tmpdir]
+      if gem_source = options[:gem_source]
+        @gem_source = "export BULLDOZER_SOURCE=#{gem_source}"
+      else
+        @gem_source = nil
+      end
+    end
+
+    def run
+      runners = @servers.map do |server|
+        Bulldozer.log.info("Booting daemon on #{server}")
+        runner = Rubysh('ssh', server, 'sudo bash -ex', Rubysh.<<<(<<EOF))
+. /root/.bashrc
+#{@gem_source}
+cd #{@tmpdir}/bulldozer || :
+git clone git@github.com:gdb/bulldozer #{@tmpdir}/bulldozer || git fetch
+cd #{@tmpdir}/bulldozer
+/usr/lib/rbenv/shims/bundle install
+start-stop-daemon -bm -d . >>#{@logfile} 2>&1 --pidfile #{@pidfile} -S --exec /usr/bin/nohup -- /usr/lib/rbenv/shims/bundle exec bulldozerd -s qa-dev1 -p #{@tmpdir}/bulldozer-data
+EOF
+        runner.run_async
+      end
+      runners.each {|runner| runner.communicate}
+    end
+  end
+end
+
+def main
+  options = {
+    :min => 1,
+    :max => 1,
+    :logfile => '/var/log/bulldozer.log',
+    :pidfile => '/var/tmp/bulldozer.pid',
+    :tmpdir => '/tmp',
+    :gem_source => nil
+  }
+
+  optparse = OptionParser.new do |opts|
+    opts.banner = "Usage: #{$0} [options]"
+
+    opts.on('-v', '--verbosity', 'Verbosity of debugging output') do
+      $log.level -= 1
+    end
+
+    opts.on('-h', '--help', 'Display this message') do
+      puts opts
+      exit(1)
+    end
+
+    opts.on('-s SERVER', '--server', 'Server basename') do |server|
+      options[:server] = server
+    end
+
+    opts.on('-l LOGFILE', '--min', 'Logfile') do |logfile|
+      options[:logfile] = logfile
+    end
+
+    opts.on('-p PIDFILE', '--pidfile', 'Pidfile') do |pidfile|
+      options[:pidfile] = pidfile
+    end
+
+    opts.on('-t TMPDIR', '--tmpdir', 'Tmpdir') do |tmpdir|
+      options[:tmpdir] = tmpdir
+    end
+
+    opts.on('-g GEMSRC', '--gem-source', 'Gem source') do |gem_source|
+      options[:gem_source] = gem_source
+    end
+
+    opts.on('-m MIN', '--min', 'Min server ID') do |min|
+      options[:min] = Integer(min)
+    end
+
+    opts.on('-M MAX', '--max', 'Max server ID') do |max|
+      options[:max] = Integer(max)
+    end
+  end
+  optparse.parse!
+
+  if ARGV.length != 0
+    puts optparse
+    return 1
+  end
+
+  runner = Bulldozer::BulldozerFactory.new(options)
+  runner.run
+  return 0
+end
+
+if $0 == __FILE__
+  ret = main
+  begin
+    exit(ret)
+  rescue TypeError
+    exit(0)
+  end
+end
