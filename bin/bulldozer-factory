@@ -27,7 +27,7 @@ module Bulldozer
 . /root/.bashrc
 #{@gem_source}
 cd #{@tmpdir}/bulldozer || :
-git clone git@github.com:gdb/bulldozer #{@tmpdir}/bulldozer || git fetch
+git clone git@github.com:gdb/bulldozer #{@tmpdir}/bulldozer || git pull
 cd #{@tmpdir}/bulldozer
 /usr/lib/rbenv/shims/bundle install
 start-stop-daemon -m -d . >>#{@logfile} 2>&1 --pidfile #{@pidfile} -S --exec /usr/bin/nohup -- /usr/lib/rbenv/shims/bundle exec bulldozerd -s qa-dev1 -p #{@tmpdir}/bulldozer-data &
