@@ -6,6 +6,10 @@ module Bulldozer
   # blocking/nonblocking setup, since the APIs are slightly different
   # in both cases.
   module RabbitMQ
+    def self.host
+      @host
+    end
+
     def self.bunny
       @bunny
     end
@@ -26,6 +30,7 @@ module Bulldozer
     RESULT_QUEUE_NAME = 'bulldozer-result'
 
     def self.connect_async(host='localhost')
+      @host = host
       @connection = AMQP.connect(:host => host)
       @channel = AMQP::Channel.new(@connection)
       @exchange = @channel.default_exchange
@@ -34,6 +39,7 @@ module Bulldozer
     end
 
     def self.connect_sync(host='localhost')
+      @host = host
       @bunny = Bunny.new(:host => host,
         :threaded => false,
         :heartbeat => 0,

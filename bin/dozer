@@ -67,7 +67,7 @@ module Bulldozer
 end
 
 def main
-  options = {}
+  options = {:server => 'localhost'}
   optparse = OptionParser.new do |opts|
     opts.banner = "Usage: #{$0} [options] REQUIRE"
 
@@ -79,6 +79,10 @@ def main
     opts.on('-q QUEUE', '--queue', 'Which queue to watch for jobs on') do |queue|
       options[:queue] = queue
     end
+
+    opts.on('-s SERVER', '--server', 'What RabbitMQ server to connect to') do |server|
+      options[:server] = server
+    end
   end
   optparse.parse!
 
@@ -87,7 +91,7 @@ def main
     return 1
   end
 
-  Bulldozer::RabbitMQ.connect_sync
+  Bulldozer::RabbitMQ.connect_sync(options[:server])
 
   runner = Bulldozer::Dozer.new(ARGV[0], options)
   runner.run
