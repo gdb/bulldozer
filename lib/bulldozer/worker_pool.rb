@@ -34,11 +34,17 @@ module Bulldozer
     end
 
     def spawn_worker
-      cmd = Rubysh('bundle', 'exec', 'dozer', '-q', queue, '--', repo.entry_point, :cwd => repo.checkout_path)
+      cmd = Rubysh('bundle', 'exec', dozer_path, '-q', queue, '--', repo.entry_point, :cwd => repo.checkout_path)
       runner = cmd.run_async # TODO: handle crashes
       Bulldozer.log.info("Spawning worker #{runner}")
       @workers[runner.pid] = runner
       runner
+    end
+
+    def dozer_path
+      # Should proooobably have bundle discover its own dozer, but it
+      # doesn't seem to work on the bulldozer repo itself.
+      File.expand_path('../../bin/dozer', File.dirname(__FILE__))
     end
 
     def spawn
