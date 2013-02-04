@@ -33,6 +33,7 @@ def main
 
   if ARGV.length != 1
     puts optparse
+    return 1
   end
 
   Bulldozer::RabbitMQ.connect_sync

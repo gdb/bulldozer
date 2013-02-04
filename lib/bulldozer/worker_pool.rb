@@ -34,8 +34,6 @@ module Bulldozer
     end
 
     def spawn_worker
-      self.class.scrub_env
-
       cmd = Rubysh('bundle', 'exec', 'dozer', '-q', queue, '--', repo.entry_point, :cwd => repo.checkout_path)
       runner = cmd.run_async # TODO: handle crashes
       Bulldozer.log.info("Spawning worker #{runner}")
