@@ -1,6 +1,6 @@
 require 'amqp'
 require 'bunny'
-require 'json'
+require 'msgpack'
 
 module Bulldozer
   # TODO: it's a biiit weird to have this combined
@@ -45,7 +45,7 @@ module Bulldozer
     end
 
     def self.publish_structured(queue, job)
-      generated = JSON.generate(job)
+      generated = MessagePack.pack(job)
       @exchange.publish(generated, :routing_key => queue)
     end
 

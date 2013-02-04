@@ -21,22 +21,12 @@ module Bulldozer
       require(require_path)
 
       @queue.subscribe(:ack => true) do |delivery_info, properties, content|
-        Bulldozer.log.debug("Dozer received a new job: #{content.inspect}")
-        job = JSON.parse(content)
-        klass_name = job['class']
-        method = job['method']
-        arguments = job['arguments']
-
-        # Note: this sanity checking prevents bugs, but should *not*
-        # be considered protection against arbitrary code
-        # execution. Only run Bulldozer with trusted clients.
-        klass = Bulldozer::Third::KernelUtils.fetch_class(klass_name)
-        unless klass < Bulldozer::RPC
-          raise "Invalid RPC: #{klass} does not mixin Bulldozer::RPC"
+        begin
+          process(delivery_info, properties, content)
+        rescue StandardError => e
+          # TODO: do something else here?
+          Bulldozer.log.error("Error in Dozer: #{e} (#{e.class})\n  #{e.backtrace.join("\n  ")}")
         end
-        klass.invoke_rpc(method, *arguments)
-
-        Bulldozer::RabbitMQ.ack(delivery_info[:delivery_tag])
       end
 
       # This is kind of silly, but ok
@@ -47,6 +37,27 @@ module Bulldozer
           raise unless e.message == 'IO timeout when reading 7 bytes'
         end
       end
+    end
+
+    def process(delivery_info, properties, content)
+      data = MessagePack.unpack(content)
+      Bulldozer.log.debug("Dozer received a new job: #{data.inspect}")
+      job = data.fetch('job')
+
+      klass_name = job.fetch('class')
+      method = job.fetch('method')
+      arguments = job.fetch('arguments')
+
+      # Note: this sanity checking prevents bugs, but should *not*
+      # be considered protection against arbitrary code
+      # execution. Only run Bulldozer with trusted clients.
+      klass = Bulldozer::Third::KernelUtils.fetch_class(klass_name)
+      unless klass < Bulldozer::RPC
+        raise "Invalid RPC: #{klass} does not mixin Bulldozer::RPC"
+      end
+      klass.invoke_rpc(method, *arguments)
+
+      Bulldozer::RabbitMQ.ack(delivery_info[:delivery_tag])
     end
   end
 end

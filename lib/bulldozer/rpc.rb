@@ -48,7 +48,14 @@ module Bulldozer
       def defer(name, *arguments)
         # TODO: cache? make sure it matches the running version? have
         # a DSL for specifying?
-        repo = Bulldozer::RPC.discover_repo(@bulldozer_repo)
+        # repo = Bulldozer::RPC.discover_repo(@bulldozer_repo)
+
+        # Make this configurable
+        repo = {
+          'type' => 'filesystem',
+          'path' => File.expand_path('../..', File.dirname(__FILE__))
+        }
+
         job = {
             'class' => self.name,
             'method' => name,
@@ -64,7 +71,7 @@ module Bulldozer
       end
 
       def rpc(name, &blk)
-        rpcs[name] = blk
+        rpcs[name.to_s] = blk
       end
 
       def invoke_rpc(name, *arguments)
