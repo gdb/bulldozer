@@ -72,7 +72,7 @@ module Bulldozer::Repo
     end
 
     def fetch
-      cmd = Rubysh('git', 'fetch', :cwd => clone_path)
+      cmd = Rubysh('git', 'fetch', 'origin', '+refs/heads/*:refs/heads/*', :cwd => clone_path)
       Bulldozer.log.info("Running #{cmd}")
       cmd.check_call
     end
