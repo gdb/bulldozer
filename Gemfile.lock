@@ -31,6 +31,8 @@ GEM
       amq-client (~> 0.9.5)
       amq-protocol (>= 0.9.4)
       eventmachine
+    bundle (0.0.1)
+      bundler
     coderay (0.9.7)
     eventmachine (1.0.0)
     method_source (0.4.1)
@@ -51,6 +53,7 @@ PLATFORMS
 
 DEPENDENCIES
   bulldozer!
+  bundle
   bunny!
   pry
   rubysh!
