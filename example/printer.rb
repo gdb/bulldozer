@@ -20,7 +20,7 @@ end
 def main
   options = {}
   optparse = OptionParser.new do |opts|
-    opts.banner = "Usage: #{$0} [options] [msg]"
+    opts.banner = "Usage: #{$0} [options] msg"
 
     opts.on('-h', '--help', 'Display this message') do
       puts opts
