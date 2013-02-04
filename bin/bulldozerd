@@ -32,8 +32,8 @@ module Bulldozer
     def run
       Bulldozer::RabbitMQ.job_queue.subscribe(:ack => true) do |headers, payload|
         # TODO: report failed jobs in some way
+        Bulldozer.log.debug("Bulldozerd received a new job: #{payload.inspect}")
         job = JSON.parse(payload)
-        Bulldozer.log.debug("Bulldozerd a new job: #{payload.inspect}")
 
         worker_pool = prepare_worker_pool(job)
         worker_pool.transmit(job)

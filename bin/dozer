@@ -21,8 +21,8 @@ module Bulldozer
       require(require_path)
 
       @queue.subscribe(:ack => true) do |delivery_info, properties, content|
+        Bulldozer.log.debug("Dozer received a new job: #{content.inspect}")
         job = JSON.parse(content)
-        Bulldozer.log.debug("Dozer a new job: #{payload.inspect}")
         klass_name = job['class']
         method = job['method']
         arguments = job['arguments']
