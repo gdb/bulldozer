@@ -7,6 +7,14 @@ module Bulldozer
   # blocking/nonblocking setup, since the APIs are slightly different
   # in both cases.
   module RabbitMQ
+    def self.bunny
+      @bunny
+    end
+
+    def self.channel
+      @channel
+    end
+
     def self.job_queue
       @job_queue
     end
@@ -27,7 +35,7 @@ module Bulldozer
     end
 
     def self.connect_sync
-      @bunny = Bunny.new(:host => 'localhost')
+      @bunny = Bunny.new(:host => 'localhost', :threaded => false)
       @bunny.start
 
       @channel = @bunny.create_channel
@@ -36,14 +44,9 @@ module Bulldozer
       @result_queue = @channel.queue(RESULT_QUEUE_NAME)
     end
 
-    def self.publish_job(job)
+    def self.publish_structured(queue, job)
       generated = JSON.generate(job)
-      @exchange.publish(generated, :routing_key => JOB_QUEUE_NAME)
-    end
-
-    def self.publish_result(result)
-      generated = JSON.generate(result)
-      @exchange.publish(generated, :routing_key => RESULT_QUEUE_NAME)
+      @exchange.publish(generated, :routing_key => queue)
     end
 
     def self.ack(delivery_tag)

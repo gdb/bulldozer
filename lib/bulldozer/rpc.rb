@@ -49,18 +49,32 @@ module Bulldozer
         # TODO: cache? make sure it matches the running version? have
         # a DSL for specifying?
         repo = Bulldozer::RPC.discover_repo(@bulldozer_repo)
+        job = {
+            'class' => self.name,
+            'method' => name,
+            'arguments' => arguments
+        }
 
-        Bulldozer::RabbitMQ.publish_job(
+        Bulldozer::RabbitMQ.publish_structured(
+          Bulldozer::RabbitMQ::JOB_QUEUE_NAME,
           'repo' => repo,
           'entry_point' => 'example/printer.rb',
-          'class' => self.name,
-          'method' => name,
-          'arguments' => arguments
+          'job' => job
           )
       end
 
       def rpc(name, &blk)
-        define_method(name, &blk)
+        rpcs[name] = blk
+      end
+
+      def invoke_rpc(name, *arguments)
+        raise "No such RPC on #{self}: #{name}" unless rpc = rpcs[name]
+        # TODO: maybe run as a bound method?
+        rpc.call(*arguments)
+      end
+
+      def rpcs
+        @bulldozer_rpcs ||= {}
       end
     end
   end

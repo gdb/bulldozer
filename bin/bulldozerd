@@ -11,24 +11,32 @@ module Bulldozer
       @workers = {}
     end
 
-    def prepare_workers(repo)
+    def prepare_worker_pool(job)
+      repo_spec = job['repo']
+      entry_point = job['entry_point']
 
-      Bulldozer::WorkerPool.new()
+      # TODO: better hash key?
+      unless @workers[repo_spec]
+        repo = Bulldozer::Repo.from_spec(repo_spec, @basedir)
+        repo.ensure_checkout
+
+        workers = Bulldozer::WorkerPool.new(repo, entry_point)
+        workers.spawn
+
+        @workers[repo_spec] = workers
+      end
+
+      @workers[repo_spec]
     end
 
     def run
       Bulldozer::RabbitMQ.job_queue.subscribe(:ack => true) do |headers, payload|
         # TODO: report failed jobs in some way
         job = JSON.parse(payload)
-        Bulldozer.log.debug("Got a new job: #{payload.inspect}")
+        Bulldozer.log.debug("Bulldozerd a new job: #{payload.inspect}")
 
-        repo_spec = job['repo']
-        repo = Bulldozer::Repo.from_spec(repo_spec, @basedir)
-        repo.ensure_checkout
-
-        entry_point = job['entry_point']
-        workers = Bulldozer::WorkerPool.new(repo, entry_point)
-        workers.spawn
+        worker_pool = prepare_worker_pool(job)
+        worker_pool.transmit(job)
 
         # Bulldozer::RabbitMQ.ack(headers.delivery_tag)
       end

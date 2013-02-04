@@ -1,29 +1,10 @@
 # Bulldozer
 
-TODO: Write a gem description
+A distributed job tracking service.
 
-## Installation
+# Security model
 
-Add this line to your application's Gemfile:
-
-    gem 'bulldozer'
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install bulldozer
-
-## Usage
-
-TODO: Write usage instructions here
-
-## Contributing
-
-1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+Bulldozer assumes that all its clients are trusted processes that you
+control. It does its best to protect against bugs, but a malicious
+attacker with control of the network could likely cause arbitrary code
+to execute.

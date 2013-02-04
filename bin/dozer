@@ -2,19 +2,50 @@
 require 'optparse'
 
 require 'bulldozer'
+require 'bulldozer/third/kernel_utils'
 
 module Bulldozer
   class Dozer
-    def initialize(require)
+    def initialize(require, options)
       @require = require
+      @options = options
+
+      # Why do this as an option at all if it's required?
+      @queue_name = @options.fetch(:queue)
+      @queue = Bulldozer::RabbitMQ.channel.queue(@queue_name, :passive => true)
     end
 
     def run
       # TODO: fall back to load?
-      require(@require)
+      require_path = File.expand_path('.', @require)
+      require(require_path)
 
-      Bulldozer::RabbitMQ.job_queue.subscribe(:ack => true) do |args|
-        require'pry';binding.pry
+      @queue.subscribe(:ack => true) do |delivery_info, properties, content|
+        job = JSON.parse(content)
+        Bulldozer.log.debug("Dozer a new job: #{payload.inspect}")
+        klass_name = job['class']
+        method = job['method']
+        arguments = job['arguments']
+
+        # Note: this sanity checking prevents bugs, but should *not*
+        # be considered protection against arbitrary code
+        # execution. Only run Bulldozer with trusted clients.
+        klass = Bulldozer::Third::KernelUtils.fetch_class(klass_name)
+        unless klass < Bulldozer::RPC
+          raise "Invalid RPC: #{klass} does not mixin Bulldozer::RPC"
+        end
+        klass.invoke_rpc(method, *arguments)
+
+        Bulldozer::RabbitMQ.ack(delivery_info[:delivery_tag])
+      end
+
+      # This is kind of silly, but ok
+      while true
+        begin
+          Bulldozer::RabbitMQ.bunny.event_loop.run_once
+        rescue Timeout::Error => e
+          raise unless e.message == 'IO timeout when reading 7 bytes'
+        end
       end
     end
   end
@@ -29,6 +60,10 @@ def main
       puts opts
       exit(1)
     end
+
+    opts.on('-q QUEUE', '--queue', 'Which queue to watch for jobs on') do |queue|
+      options[:queue] = queue
+    end
   end
   optparse.parse!
 
@@ -39,7 +74,7 @@ def main
 
   Bulldozer::RabbitMQ.connect_sync
 
-  runner = Bulldozer::Dozer.new(ARGV[0])
+  runner = Bulldozer::Dozer.new(ARGV[0], options)
   runner.run
   return 0
 end
