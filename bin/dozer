@@ -16,9 +16,8 @@ module Bulldozer
     end
 
     def run
-      # TODO: fall back to load?
       require_path = File.expand_path('.', @require)
-      require(require_path)
+      load(require_path)
 
       @queue.subscribe(:ack => true) do |delivery_info, properties, content|
         begin
