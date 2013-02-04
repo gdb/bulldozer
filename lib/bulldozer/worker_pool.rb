@@ -15,7 +15,7 @@ module Bulldozer
 
     def initialize(repo)
       @repo = repo
-      @pool_size = 1
+      @pool_size = 5
       @workers = {}
 
       create_queue
