@@ -34,7 +34,11 @@ module Bulldozer
     end
 
     def self.connect_sync(host='localhost')
-      @bunny = Bunny.new(:host => host, :threaded => false)
+      @bunny = Bunny.new(:host => host,
+        :threaded => false,
+        :heartbeat => 0,
+        :socket_timeout => 0,
+        :connect_timeout => 0)
       @bunny.start
 
       @channel = @bunny.create_channel
