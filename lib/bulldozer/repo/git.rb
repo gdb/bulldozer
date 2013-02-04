@@ -2,10 +2,11 @@ require 'fileutils'
 
 module Bulldozer::Repo
   class Git < AbstractRepo
-    attr_reader :remote, :commit
+    attr_reader :entry_point, :remote, :commit
 
-    def initialize(basedir, remote, commit)
+    def initialize(basedir, entry_point, remote, commit)
       super(basedir)
+      @entry_point = entry_point
       @remote = remote
       @commit = commit
     end

@@ -3,12 +3,11 @@ require 'securerandom'
 module Bulldozer
   # TODO: full worker management
   class WorkerPool
-    attr_reader :pool_size, :repo, :entry_point, :queue
+    attr_reader :pool_size, :repo, :queue
 
-    def initialize(repo, entry_point)
+    def initialize(repo)
       @repo = repo
       @pool_size = 1
-      @entry_point = entry_point
 
       create_queue
     end
@@ -27,7 +26,7 @@ module Bulldozer
 
     def spawn
       @workers = (1..pool_size).map do |worker|
-        cmd = Rubysh('bundle', 'exec', 'dozer', '-q', queue, '--', entry_point, :cwd => repo.checkout_path)
+        cmd = Rubysh('bundle', 'exec', 'dozer', '-q', queue, '--', repo.entry_point, :cwd => repo.checkout_path)
         Bulldozer.log.info("Spawning worker #{cmd}")
         cmd.run_async # TODO: handle crashes
       end

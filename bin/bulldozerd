@@ -12,15 +12,14 @@ module Bulldozer
     end
 
     def prepare_worker_pool(job)
-      repo_spec = job['repo']
-      entry_point = job['entry_point']
+      repo_spec = job.fetch('repo')
 
       # TODO: better hash key?
       unless @workers[repo_spec]
         repo = Bulldozer::Repo.from_spec(repo_spec, @basedir)
         repo.ensure_checkout
 
-        workers = Bulldozer::WorkerPool.new(repo, entry_point)
+        workers = Bulldozer::WorkerPool.new(repo)
         workers.spawn
 
         @workers[repo_spec] = workers

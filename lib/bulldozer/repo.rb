@@ -10,8 +10,9 @@ module Bulldozer
       when 'git'
         remote = repo['remote']
         commit = repo['commit']
+        entry_point = repo.fetch('entry_point')
 
-        Bulldozer::Repo::Git.new(basedir, remote, commit)
+        Bulldozer::Repo::Git.new(basedir, entry_point, remote, commit)
       when 'filesystem'
         path = repo['path']
 

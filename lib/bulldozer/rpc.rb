@@ -26,20 +26,37 @@ module Bulldozer
     private
 
     def self.repo_spec_git(file)
+      entry_point = git_entrypoint(file)
       remote = git_remote(file)
       commit = git_commit(file)
       {
         'type' => 'git',
         'remote' => remote,
-        'commit' => commit
+        'commit' => commit,
+        'entry_point' => entry_point
       }
     end
 
     def self.repo_spec_filesystem(file)
       {
         'type' => 'filesystem',
-        'path' => file
+        'path' => File.expand_path(file)
       }
+    end
+
+    def self.git_entrypoint(file)
+      file = File.expand_path(file)
+      runner = Rubysh('git', 'rev-parse', '--show-toplevel', Rubysh.>(:stdout),
+        :cwd => File.dirname(file)).run
+      basedir = runner.read(:stdout).strip
+
+      # Very janky. Should fixup.
+      prefix = file[0...basedir.length]
+      slash = file[basedir.length..basedir.length]
+      rest = file[basedir.length+1..-1]
+      raise "Not sure how to handle: basedir is #{basedir} but is not the prefix of file #{file}" unless basedir == prefix
+      raise "Not sure how to handle: after the prefix of #{basedir} is not a slash: #{file}" unless slash == '/'
+      rest
     end
 
     def self.git_remote(file)
@@ -80,7 +97,6 @@ module Bulldozer
         Bulldozer::RabbitMQ.publish_structured(
           Bulldozer::RabbitMQ::JOB_QUEUE_NAME,
           'repo' => repo,
-          'entry_point' => 'example/printer.rb',
           'job' => job
           )
       end

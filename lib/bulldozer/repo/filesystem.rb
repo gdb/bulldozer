@@ -14,5 +14,9 @@ module Bulldozer::Repo
     def checkout_path
       path
     end
+
+    def entry_point
+      path
+    end
   end
 end
