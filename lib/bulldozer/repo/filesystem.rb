@@ -12,7 +12,7 @@ module Bulldozer::Repo
     end
 
     def checkout_path
-      path
+      File.dirname(path)
     end
 
     def entry_point

@@ -5,9 +5,18 @@ module Bulldozer
   class WorkerPool
     attr_reader :pool_size, :repo, :queue
 
+    def self.scrub_env
+      return if @scrub_env
+      @scrub_env = true
+
+      # TODO: implement env scrubbing in Rubysh
+      ENV.keys.select {|key| key =~ /\ABUNDLE/}.each {|key| ENV.delete(key)}
+    end
+
     def initialize(repo)
       @repo = repo
       @pool_size = 1
+      @workers = {}
 
       create_queue
     end
@@ -24,12 +33,18 @@ module Bulldozer
       Bulldozer::RabbitMQ.publish_structured(@queue, job)
     end
 
+    def spawn_worker
+      self.class.scrub_env
+
+      cmd = Rubysh('bundle', 'exec', 'dozer', '-q', queue, '--', repo.entry_point, :cwd => repo.checkout_path)
+      runner = cmd.run_async # TODO: handle crashes
+      Bulldozer.log.info("Spawning worker #{runner}")
+      @workers[runner.pid] = runner
+      runner
+    end
+
     def spawn
-      @workers = (1..pool_size).map do |worker|
-        cmd = Rubysh('bundle', 'exec', 'dozer', '-q', queue, '--', repo.entry_point, :cwd => repo.checkout_path)
-        Bulldozer.log.info("Spawning worker #{cmd}")
-        cmd.run_async # TODO: handle crashes
-      end
+      pool_size.times {spawn_worker}
 
       at_exit do
         @workers.each do |worker|
