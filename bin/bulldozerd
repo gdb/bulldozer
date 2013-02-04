@@ -30,6 +30,8 @@ module Bulldozer
     end
 
     def run
+      Bulldozer.log.info('Starting bulldozerd')
+
       Bulldozer::RabbitMQ.job_queue.subscribe(:ack => true) do |headers, payload|
         # TODO: report failed jobs in some way
         job = Bulldozer::SERIALIZER.load(payload)
@@ -50,7 +52,7 @@ def main
     opts.banner = "Usage: #{$0} [options]"
 
     opts.on('-v', '--verbosity', 'Verbosity of debugging output') do
-      $log.level -= 1
+      Bulldozer.log.level -= 1
     end
 
     opts.on('-h', '--help', 'Display this message') do
