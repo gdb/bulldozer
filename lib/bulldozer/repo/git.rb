@@ -54,7 +54,7 @@ module Bulldozer::Repo
     end
 
     def bundle
-      Rubysh('bundle', 'install', :cwd => commit_path).check_call
+      Rubysh('bundle', 'install', '--path', bundle_path, :cwd => commit_path).check_call
     end
 
     def clone
@@ -88,6 +88,10 @@ module Bulldozer::Repo
 
     def commit_path
       @commit_path ||= File.join(basedir, commit)
+    end
+
+    def bundle_path
+      @commit_path ||= File.join(basedir, 'vendor/bundle')
     end
   end
 end
