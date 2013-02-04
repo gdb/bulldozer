@@ -49,12 +49,13 @@ module Bulldozer
       runner = Rubysh('git', 'rev-parse', '--show-toplevel', Rubysh.>(:stdout),
         :cwd => File.dirname(file)).run
       basedir = runner.read(:stdout).strip
+      Bulldozer.log.debug("Discovered git toplevel directory #{basedir}")
 
       # Very janky. Should fixup.
       prefix = file[0...basedir.length]
       slash = file[basedir.length..basedir.length]
       rest = file[basedir.length+1..-1]
-      raise "Not sure how to handle: basedir is #{basedir} but is not the prefix of file #{file}" unless basedir == prefix
+      raise "Not sure how to handle: basedir is #{basedir} but is not the prefix of file #{file}. Corresponding prefix: #{prefix}" unless basedir == prefix
       raise "Not sure how to handle: after the prefix of #{basedir} is not a slash: #{file}" unless slash == '/'
       rest
     end
