@@ -19,7 +19,7 @@ module Bulldozer
       require_path = File.expand_path('.', @require)
       load(require_path)
 
-      if defined?(:bulldozer_init)
+      if defined?(bulldozer_init)
         Bulldozer.log.info('Calling top-level bulldozer_init method')
         bulldozer_init
       end
