@@ -17,6 +17,8 @@ PATH
   remote: .
   specs:
     bulldozer (0.0.1)
+      amqp
+      msgpack
 
 GEM
   remote: https://rubygems.org/
@@ -48,9 +50,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  amqp
   bulldozer!
   bunny!
-  msgpack
   pry
   rubysh!
